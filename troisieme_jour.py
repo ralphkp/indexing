@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import os
 from sklearn.cluster import KMeans
-from scipy.spatial.distance import euclidean
 import time
 
 # Fonction pour charger une image
@@ -56,7 +55,7 @@ def find_similar_in_cluster(query_image_path, cluster, cluster_image_paths, desc
     distances = []
     for idx in cluster:
         base_descriptor = descriptors[idx]
-        distance = euclidean(query_descriptor, base_descriptor)
+        distance = np.linalg.norm(query_descriptor - base_descriptor)  # Utilisation de la norme L2 comme mesure de distance
         distances.append((cluster_image_paths[idx], distance))
     
     distances.sort(key=lambda x: x[1])
@@ -106,6 +105,9 @@ def evaluate_system_with_clustering(query_images, base_directory, k=10, N=5):
             print(f"Aucune image similaire trouvée pour '{query_image_name}'.")
             continue
         
+        print(f"Requête: {query_image_name}")
+        print(f"Temps de recherche: {elapsed_time:.4f} secondes")
+        
         # Calculer la précision et le rappel
         relevant_retrieved = sum(1 for img, _ in similar_images if img.split('__')[0] == query_image_name.split('__')[0])
         total_relevant = sum(1 for img in os.listdir(base_directory) if img.split('__')[0] == query_image_name.split('__')[0])
@@ -116,8 +118,6 @@ def evaluate_system_with_clustering(query_images, base_directory, k=10, N=5):
         precision_scores.append(precision)
         recall_scores.append(recall)
         
-        print(f"Requête: {query_image_name}")
-        print(f"Temps de recherche: {elapsed_time:.4f} secondes")
         print(f"Précision: {precision:.4f}")
         print(f"Rappel: {recall:.4f}")
         print("----------------------------")
@@ -153,7 +153,7 @@ def evaluate_system_with_clustering(query_images, base_directory, k=10, N=5):
 base_directory = "coil-100"  # Modifier le chemin selon votre dossier
 
 # Liste des images de requête pour évaluation
-query_images = ['obj1__0.png', 'obj2__0.png', 'obj3__0.png', 'obj4__0.png', 'obj5__0.png']
+query_images = ['obj1__100.png', 'obj2__100.png', 'obj3__100.png', 'obj4__100.png', 'obj5__100.png']
 
 # Évaluer l'algorithme avec clustering
-evaluate_system_with_clustering(query_images, base_directory, k=20, N=5)
+evaluate_system_with_clustering(query_images, base_directory, k=5, N=5)
